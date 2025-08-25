@@ -24,15 +24,3 @@ A Yii2-based internal tool for company expense management with web interface and
 - **Employee 1**: username: `employee1`, password: `emp123`
 - **Employee 2**: username: `employee2`, password: `emp123`
 
-## API Usage
-
-See `README-API.md` for detailed API documentation.
-
-## Security Features
-
-- File type validation for receipts
-- Size limits on uploads
-- SQL injection prevention
-- XSS protection
-- CSRF protection
-- Role-based access control

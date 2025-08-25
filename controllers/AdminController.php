@@ -3,6 +3,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Expense;
+use app\models\ExpenseSearch; // Add this import
 use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -40,8 +41,8 @@ class AdminController extends Controller
 
     public function actionIndex()
     {
-        $searchModel = new Expense();
-        $dataProvider = $searchModel->adminSearch(Yii::$app->request->queryParams);
+        $searchModel = new ExpenseSearch(); // Use ExpenseSearch instead of Expense
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, true); // true for admin
 
         return $this->render('index', [
             'searchModel' => $searchModel,

@@ -34,8 +34,8 @@ class ExpenseController extends Controller
 
     public function actionIndex()
     {
-        $searchModel = new Expense();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $searchModel = new \app\models\ExpenseSearch(); // Use ExpenseSearch
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, false); // false for user mode
 
         return $this->render('index', [
             'searchModel' => $searchModel,
