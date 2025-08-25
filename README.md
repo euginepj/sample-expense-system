@@ -24,3 +24,9 @@ A Yii2-based internal tool for company expense management with web interface and
 - **Employee 1**: username: `employee1`, password: `emp123`
 - **Employee 2**: username: `employee2`, password: `emp123`
 
+
+## API URLS 
+
+- GET list expense: `api/expense/index`
+- GET view expense: `api/expense/view`
+- DELETE delete expense: `api/expense/delete`
