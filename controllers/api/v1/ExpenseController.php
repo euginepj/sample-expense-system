@@ -1,5 +1,5 @@
 <?php
-namespace app\controllers\api;
+namespace app\controllers\api\v1;
 
 use Yii;
 use app\models\Expense;
@@ -16,49 +16,27 @@ class ExpenseController extends ActiveController
     public function behaviors()
     {
         $behaviors = parent::behaviors();
-        
-        // Add CORS support
-        $behaviors['corsFilter'] = [
-            'class' => \yii\filters\Cors::class,
-            'cors' => [
-                'Origin' => ['*'],
-                'Access-Control-Request-Method' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
-                'Access-Control-Request-Headers' => ['*'],
-                'Access-Control-Allow-Credentials' => null,
-                'Access-Control-Max-Age' => 86400,
-                'Access-Control-Expose-Headers' => [],
-            ],
-        ];
-
-        // Add authentication
-        $behaviors['authenticator'] = [
-            'class' => HttpBearerAuth::class,
-            'except' => ['options'],
-        ];
-
-        // Add access control
-        $behaviors['access'] = [
-            'class' => AccessControl::class,
-            'rules' => [
-                [
-                    'allow' => true,
-                    'roles' => ['@'],
-                ],
-            ],
-        ];
 
         return $behaviors;
     }
 
+    public function afterAction($action, $result)
+    {
+        Yii::$app->response->headers->set('X-API-Version', 'v1');
+        return parent::afterAction($action, $result);
+    }
+
     public function actions()
     {
-        $actions = parent::actions();
-        unset($actions['create'], $actions['update'], $actions['delete']);
+        // $actions = parent::actions();
+        // unset($actions['view'], $actions['index'], $actions['create'], $actions['update'], $actions['delete']);
+
+        $actions = [];
         return $actions;
     }
 
     public function actionIndex()
-    {
+    { 
         $user = Yii::$app->user->identity;
         
         if ($user->role === 'admin') {
@@ -79,6 +57,12 @@ class ExpenseController extends ActiveController
             $query->andWhere(['category' => $category]);
         }
 
+        // Filter by user_id if provided (admin only)
+        $user_id = Yii::$app->request->get('user_id');
+        if ($user_id && $user->role === 'admin') {
+            $query->andWhere(['user_id' => $user_id]);
+        }
+
         return $query->orderBy(['submission_date' => SORT_DESC])->all();
     }
 
@@ -86,7 +70,14 @@ class ExpenseController extends ActiveController
     {
         $expense = $this->findModel($id);
         $this->checkAccess('view', $expense);
-        return $expense;
+        
+        return [
+            'data' => $expense,
+            'meta' => [
+                'version' => 'v1',
+                'timestamp' => date('c')
+            ]
+        ];
     }
 
     public function actionCreate()
@@ -94,12 +85,27 @@ class ExpenseController extends ActiveController
         $model = new Expense();
         $model->load(Yii::$app->request->post(), '');
         
+        // Set user_id for the expense
+        $model->user_id = Yii::$app->user->id;
+        
         if ($model->save()) {
             Yii::$app->response->setStatusCode(201);
-            return $model;
+            return [
+                'data' => $model,
+                'meta' => [
+                    'version' => 'v1',
+                    'status' => 'created'
+                ]
+            ];
         } else {
             Yii::$app->response->setStatusCode(422);
-            return $model->errors;
+            return [
+                'errors' => $model->errors,
+                'meta' => [
+                    'version' => 'v1',
+                    'status' => 'validation_failed'
+                ]
+            ];
         }
     }
 
@@ -111,10 +117,22 @@ class ExpenseController extends ActiveController
         $model->load(Yii::$app->request->post(), '');
         
         if ($model->save()) {
-            return $model;
+            return [
+                'data' => $model,
+                'meta' => [
+                    'version' => 'v1',
+                    'status' => 'updated'
+                ]
+            ];
         } else {
             Yii::$app->response->setStatusCode(422);
-            return $model->errors;
+            return [
+                'errors' => $model->errors,
+                'meta' => [
+                    'version' => 'v1',
+                    'status' => 'validation_failed'
+                ]
+            ];
         }
     }
 
@@ -128,7 +146,13 @@ class ExpenseController extends ActiveController
             return null;
         } else {
             Yii::$app->response->setStatusCode(500);
-            return ['error' => 'Failed to delete expense'];
+            return [
+                'error' => 'Failed to delete expense',
+                'meta' => [
+                    'version' => 'v1',
+                    'status' => 'error'
+                ]
+            ];
         }
     }
 
@@ -141,7 +165,7 @@ class ExpenseController extends ActiveController
         throw new NotFoundHttpException('The requested expense does not exist.');
     }
 
-    protected function checkAccess($action, $model = null, $params = [])
+    public function checkAccess($action, $model = null, $params = [])
     {
         $user = Yii::$app->user->identity;
         
@@ -154,6 +178,11 @@ class ExpenseController extends ActiveController
             if ($model->user_id !== $user->id) {
                 throw new ForbiddenHttpException('You are not allowed to access this expense');
             }
+        }
+
+        // For create action, always allow since user_id will be set to current user
+        if ($action === 'create') {
+            return true;
         }
 
         return true;

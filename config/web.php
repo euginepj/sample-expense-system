@@ -16,6 +16,9 @@ $config = [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'khzrgqeTu_-5fCoAiizlsmX42gu1FWX5',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ]
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -50,24 +53,29 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            'enableStrictParsing' => false, // Set to false for better flexibility
             'rules' => [
-                // API routes
-                [
-                    'class' => 'yii\rest\UrlRule', 
-                    'controller' => 'api/expense',
-                    'pluralize' => false,
-                    'extraPatterns' => [
-                        'GET' => 'index',
-                        'GET {id}' => 'view',
-                        'POST' => 'create',
-                        'PUT {id}' => 'update',
-                        'DELETE {id}' => 'delete',
-                    ]
-                ],
+                // Version 1 API endpoints
+                'v1/expense' => 'api/v1/expense/index',
+                'v1/expense/<id:\d+>' => 'api/v1/expense/view',
+                'v1/expense/create' => 'api/v1/expense/create',
+                'v1/expense/update/<id:\d+>' => 'api/v1/expense/update',
+                'v1/expense/delete/<id:\d+>' => 'api/v1/expense/delete',
+                
+                // Legacy API endpoints (backward compatibility)
+                'api/expense' => 'api/v1/expense/index',
+                'api/expense/<id:\d+>' => 'api/v1/expense/view',
+                'api/expense/create' => 'api/v1/expense/create',
+                'api/expense/update/<id:\d+>' => 'api/v1/expense/update',
+                'api/expense/delete/<id:\d+>' => 'api/v1/expense/delete',
+                
                 
                 // Regular routes
                 '<controller:\w+>/<action:\w+>/<id:\d+>' => '<controller>/<action>',
                 '<controller:\w+>/<action:\w+>' => '<controller>/<action>',
+                
+                // Default route
+                '' => 'site/index',
             ],
         ],
     ],
@@ -75,19 +83,14 @@ $config = [
 ];
 
 if (YII_ENV_DEV) {
-    // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 }
 
