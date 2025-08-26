@@ -14,7 +14,8 @@ $totalRejected = Expense::find()->where(['user_id' => Yii::$app->user->id, 'stat
 <div class="expense-index">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="h2 mb-0"><?= Html::encode($this->title) ?></h1>
+            <h1 class="h2 mb-0"><?= Html::encode($this->title) ?>  
+                <small class="h5"><?= Html::a('API Version', ['api/expense'], ['class' => 'api-link']) ?></small></h1>
             <p class="text-muted">Manage your expense submissions and track their status</p>
         </div>
         <div class="col-md-4 text-end">
@@ -143,7 +144,10 @@ $totalRejected = Expense::find()->where(['user_id' => Yii::$app->user->id, 'stat
                                 return Html::a('Details', $url, [
                                     'class' => 'btn btn-sm btn-outline-primary',
                                     'title' => 'View expense details'
-                                ]);
+                                ]) . ' ' . 
+                                Html::a('API', ['api/expense/', 'id' => $model->id], [
+                                    'class' => 'btn btn-sm btn-success', 'style' => 'font-size: 12px'
+                                ]); 
                             }
                         ]
                     ],
