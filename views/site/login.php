@@ -46,8 +46,12 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php ActiveForm::end(); ?>
 
             <div style="color:#999;">
-                You may login with <strong>admin/admin</strong> or <strong>demo/demo</strong>.<br>
-                To modify the username/password, please check out the code <code>app\models\User::$users</code>.
+                You may login with 
+                <ul>
+                    <li><strong>admin/admin123</strong></li>
+                    <li><strong>employee1/emp123</strong></li>
+                    <li><strong>employee2/emp123</strong></li>
+                </ul>
             </div>
 
         </div>
